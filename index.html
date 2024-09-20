@@ -41,7 +41,7 @@
             </h2>
             <div id="collapseTwo" class="accordion-collapse collapse" data-bs-parent="#accordionExample">
               <div class="accordion-body">
-                <textarea name="" id="data_input"></textarea>
+                <div id="table-container"></div>
               </div>
             </div>
           </div>
@@ -54,20 +54,17 @@
             </h2>
             <div id="collapseThree" class="accordion-collapse collapse" data-bs-parent="#accordionExample">
               <div class="accordion-body">
-                <div id="table_main"></div>
+                <div id="table-main" class="table-responsive"></div>
               </div>
             </div>
           </div>
         </div>
       </div>
-      <div class="col-13 mb-3">
-        <h1>Generador de Tabla desde Form.io</h1>
-        <div id="table-container"></div>
-      </div>
     </div>
   </div>
   <!-- Load custom class before using it -->
   <script src="./formiocustom.js" type="module"></script>
+  <script src="./render.js" type="module"></script>
   <script src="./module.js" type="module"></script>
   <script src="./index.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"

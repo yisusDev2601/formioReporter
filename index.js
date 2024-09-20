@@ -15,6 +15,11 @@ document.addEventListener('DOMContentLoaded', (e) => {
     {"data":{"name":"Otro registro","submit":true},"metadata":{"timezone":"America/Mexico_City","offset":-360,"origin":"http://localhost:8000","referrer":"http://localhost:8000/link-informe/informe/1","browserName":"Netscape","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36 Edg/128.0.0.0","pathName":"/link-informe/1/block-item/tula/create","onLine":true},"state":"submitted","_vnote":""},
     {"data":{"name":"Otro registro","submit":true},"metadata":{"timezone":"America/Mexico_City","offset":-360,"origin":"http://localhost:8000","referrer":"http://localhost:8000/link-informe/informe/1","browserName":"Netscape","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36 Edg/128.0.0.0","pathName":"/link-informe/1/block-item/tula/create","onLine":true},"state":"submitted","_vnote":""}
   ];
+
+  tableConstructor.buttonGenerate.addEventListener('click', function(e){
+    const tableRenderer =  new TableRenderer('table-main');
+    tableRenderer.renderTable(tableConstructor.headers,tableConstructor.rows,tableConstructor.dataAccessMethods);
+  });
   // Exponer el builder para futuras referencias
   window.formioBuilder = formioBuilder;
 });

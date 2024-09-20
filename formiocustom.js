@@ -24,7 +24,6 @@ class FormioBuilderCustom {
 
   updateComponents() {
     this.components = this.form.schema.components || [];
-    console.log(this.components); // Log the components
     this.tableConstructor.updateComponents(this.components); // Actualiza la tabla con los nuevos componentes
   }
 }

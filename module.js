@@ -1,9 +1,11 @@
 class FormioTableConstructor {
-  constructor(components = [], idContainer) {
+  constructor(components = [], idContainerConstructor) {
     this.components = components;
-    this.idContainer = idContainer;
+    this.idContainerConstructor = idContainerConstructor;
     this.selectedComponents = [];
     this.rows = []; // Aquí almacenarás los datos a mostrar
+    this.headers = []; // Para almacenar los nombres de los headers
+    this.dataAccessMethods = []; // Para almacenar los métodos de acceso a la data
     this.createContainerMain();
   }
 
@@ -24,19 +26,17 @@ class FormioTableConstructor {
     };
 
     this.components = extractInputComponents(newComponents);
-    console.log(this.components);
     this.renderOptions();
   }
 
   createContainerMain() {
-    const containerMain = document.getElementById(this.idContainer);
+    const containerMain = document.getElementById(this.idContainerConstructor);
     containerMain.innerHTML = '<div class="mb-4"><h1>Generador de tablas</h1></div>';
-
     this.createModal();
     this.renderOptions();
 
     const button = document.createElement('button');
-    button.innerText = 'Abrir Modal';
+    button.innerText = 'Configurar tabla';
     button.className = 'btn btn-primary';
     button.onclick = () => this.openModal();
     containerMain.appendChild(button);
@@ -46,21 +46,27 @@ class FormioTableConstructor {
     this.modal = document.createElement('div');
     this.modal.className = 'modal fade';
     this.modal.style.display = 'none';
+    this.modal.setAttribute('tabindex', '-1');
+
     this.modal.innerHTML = `
-      <div class="modal-dialog">
+      <div class="modal-dialog modal-xl">
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title">Selecciona Componentes</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body">
-            <select class="js-example-basic-multiple form-select" multiple="multiple" id="select-data"></select>
-            <div class="mt-3">
-              <label for="headers">Headers</label>
-              <input type="text" id="headers" class="form-control" />
-              <label for="rows" class="mt-2">Rows</label>
-              <input type="text" id="rows" class="form-control" />
-            </div>
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Visible</th>
+                  <th>Header Name</th>
+                  <th>Data Access Method</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="components-table-body"></tbody>
+            </table>
           </div>
           <div class="modal-footer">
             <button id="submit-selection" class="btn btn-success">Generar Tabla</button>
@@ -69,16 +75,77 @@ class FormioTableConstructor {
         </div>
       </div>
     `;
-    document.body.appendChild(this.modal);
 
-    document.getElementById('submit-selection').onclick = () => {
-      this.selectedComponents = Array.from(document.getElementById('select-data').selectedOptions)
-        .map(option => option.value);
-      this.renderTable();
-      this.closeModal();
-    };
+    document.body.appendChild(this.modal);
+    this.buttonGenerate = document.getElementById('submit-selection');
+    this.setupTableEvents();
   }
 
+  setupTableEvents() {
+    const tableBody = document.getElementById('components-table-body');
+
+    // Manejar el evento de submit
+    document.getElementById('submit-selection').onclick = () => {
+      this.selectedComponents = [];
+      this.headers = [];
+      this.dataAccessMethods = [];
+
+      tableBody.querySelectorAll('tr').forEach(row => {
+        const checkbox = row.querySelector('.visibility-toggle');
+        const headerName = row.querySelector('.header-name').value;
+        const dataAccess = row.querySelector('.data-access').value;
+
+        if (checkbox.checked) {
+          this.selectedComponents.push(row.dataset.key);
+          this.headers.push(headerName);
+          this.dataAccessMethods.push(dataAccess);
+        }
+      });      
+      this.closeModal();
+    };
+
+    // Resto de eventos (eliminar, mover)
+    tableBody.addEventListener('click', (event) => {
+      if (event.target.classList.contains('btn-remove')) {
+        event.target.closest('tr').remove();
+      }
+
+      if (event.target.classList.contains('btn-up')) {
+        const row = event.target.closest('tr');
+        const prevRow = row.previousElementSibling;
+        if (prevRow) {
+          tableBody.insertBefore(row, prevRow);
+        }
+      }
+
+      if (event.target.classList.contains('btn-down')) {
+        const row = event.target.closest('tr');
+        const nextRow = row.nextElementSibling;
+        if (nextRow) {
+          tableBody.insertBefore(nextRow, row);
+        }
+      }
+    });
+  }
+
+  renderOptions() {
+    const data_components = `
+      ${this.components.map(component => `
+        <tr data-key="${component.key}">
+          <td><input type="checkbox" class="visibility-toggle" checked /></td>
+          <td><input type="text" class="header-name" value="${component.label}" /></td>
+          <td><input type="text" class="data-access" value="data.${component.key}" /></td>
+          <td>
+            <button class="btn btn-danger btn-remove">Eliminar</button>
+            <button class="btn btn-primary btn-up">↑</button>
+            <button class="btn btn-primary btn-down">↓</button>
+          </td>
+        </tr>
+      `).join('')}
+    `;
+
+    document.getElementById('components-table-body').innerHTML = data_components;
+  }
   openModal() {
     const modalElement = new bootstrap.Modal(this.modal);
     modalElement.show();
@@ -87,66 +154,6 @@ class FormioTableConstructor {
   closeModal() {
     const modalElement = bootstrap.Modal.getInstance(this.modal);
     modalElement.hide();
-  }
-
-  renderOptions() {
-    const selectContainer = document.getElementById('select-data');
-    // selectContainer.innerHTML = ''; // Limpiar el contenedor previo
-
-    this.components.forEach(component => {
-      const option = document.createElement('option');
-      option.value = component.key;
-      option.textContent = component.label;
-      selectContainer.appendChild(option);
-    });
-
-    // Inicializa Select2
-    $(selectContainer).select2({
-      placeholder: "Selecciona componentes",
-      allowClear: true
-    });
-  }
-
-  renderTable() {
-    const containerMain = document.getElementById(this.idContainer);
-    const tableContainer = document.createElement('div');
-    tableContainer.innerHTML = '';
-
-    // Crear tabla
-    const table = document.createElement('table');
-    table.className = 'table table-striped';
-    const thead = document.createElement('thead');
-    const tbody = document.createElement('tbody');
-
-    // Crear encabezado
-    const headerRow = document.createElement('tr');
-    this.selectedComponents.forEach(key => {
-      const th = document.createElement('th');
-      th.innerText = this.components.find(comp => comp.key === key)?.label || key;
-      headerRow.appendChild(th);
-    });
-    thead.appendChild(headerRow);
-    table.appendChild(thead);
-
-    // Renderizar datos
-    this.renderDataTable(tbody);
-
-    table.appendChild(tbody);
-    tableContainer.appendChild(table);
-    containerMain.appendChild(tableContainer);
-  }
-
-  renderDataTable(tbody) {
-    tbody.innerHTML = ''; // Limpiar el cuerpo previo
-    this.rows.forEach(row => {
-      const tr = document.createElement('tr');
-      this.selectedComponents.forEach(key => {
-        const td = document.createElement('td');
-        td.innerText = row[key] || ''; // Mostrar el dato o vacío si no existe
-        tr.appendChild(td);
-      });
-      tbody.appendChild(tr);
-    });
   }
 }
 
